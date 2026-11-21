@@ -239,7 +239,58 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        def alpha_beta(state, depth, agentIndex, alpha, beta):
+            
+            if agentIndex >= state.getNumAgents():
+                agentIndex = 0
+                depth += 1
+
+            
+            if state.isWin() or state.isLose() or depth == self.depth:
+                return self.evaluationFunction(state)
+
+            legalActions = state.getLegalActions(agentIndex)
+            if not legalActions:
+                return self.evaluationFunction(state)
+
+            
+            if agentIndex == 0:
+                v = float("-inf")
+                for action in legalActions:
+                    successor = state.generateSuccessor(agentIndex, action)
+                    v = max(v, alpha_beta(successor, depth, agentIndex + 1, alpha, beta))
+                    if v > beta:
+                        return v
+                    alpha = max(alpha, v)
+                return v
+
+            
+            else:
+                v = float("inf")
+                for action in legalActions:
+                    successor = state.generateSuccessor(agentIndex, action)
+                    v = min(v, alpha_beta(successor, depth, agentIndex + 1, alpha, beta))
+                    if v < alpha:
+                        return v
+                    beta = min(beta, v)
+                return v
+
+        
+        alpha = float("-inf")
+        beta = float("inf")
+        bestScore = float("-inf")
+        bestAction = None
+
+        for action in gameState.getLegalActions(0):
+            successor = gameState.generateSuccessor(0, action)
+            score = alpha_beta(successor, 0, 1, alpha, beta)
+            if score > bestScore:
+                bestScore = score
+                bestAction = action
+            alpha = max(alpha, bestScore)
+
+        return bestAction
+
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
