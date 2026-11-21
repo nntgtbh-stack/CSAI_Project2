@@ -241,6 +241,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
 
+
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 4)
@@ -254,19 +255,16 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
+
+        numAgents = gameState.getNumAgents()
+
         def expectimax(state, depth, agentIndex):
+
+            
             if state.isWin() or state.isLose():
                 return self.evaluationFunction(state)
 
-            numAgents = state.getNumAgents()
-            # Chuyen sang agent tiep theo
-            nextAgent = (agentIndex + 1) % numAgents
-
-            # Chi tang depth sau khi tat ca ghosts da di
-            nextDepth = depth + 1 if nextAgent == 0 else depth
-
-            # Kiem tra do sau
-            if depth == self.depth and agentIndex == 0:
+            if depth == self.depth:
                 return self.evaluationFunction(state)
 
             legalActions = state.getLegalActions(agentIndex)
@@ -274,64 +272,78 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             if not legalActions:
                 return self.evaluationFunction(state)
 
-            # Pacman: MAX node
+            
+            nextAgent = (agentIndex + 1) % numAgents
+
+            nextDepth = depth
+            if nextAgent == 0:
+                nextDepth += 1
+
+            
             if agentIndex == 0:
 
-                values = []
+                bestValue = float('-inf')
 
                 for action in legalActions:
-                    successor = state.generateSuccessor(agentIndex, action)
-
-                    value = expectimax(
-                        successor,
-                        nextDepth,
-                        nextAgent
+                    successor = state.generateSuccessor(
+                        agentIndex, action
                     )
 
-                    values.append(value)
+                    value = expectimax(
+                        successor, nextDepth, nextAgent
+                    )
 
-                return max(values)
+                    bestValue = max(bestValue, value)
 
-            # Ghost: CHANCE node
+                return bestValue
+
+
             else:
 
-                values = []
+                totalValue = 0
 
                 for action in legalActions:
-                    successor = state.generateSuccessor(agentIndex, action)
-
-                    value = expectimax(
-                        successor,
-                        nextDepth,
-                        nextAgent
+                    successor = state.generateSuccessor(
+                        agentIndex, action
                     )
 
-                    values.append(value)
+                    value = expectimax(
+                        successor, nextDepth, nextAgent
+                    )
 
-                return sum(values) / len(values)
+                    totalValue += value
 
-        # Tim action tot nhat cho Pacman
+                return totalValue / len(legalActions)
+
+        
         legalActions = gameState.getLegalActions(0)
 
         if not legalActions:
             return Directions.STOP
 
-        bestAction = None
+        bestAction = legalActions[0]
         bestValue = float('-inf')
+
+        nextAgent = 1 % numAgents
+        nextDepth = 0
+
+        if nextAgent == 0:
+            nextDepth = 1
 
         for action in legalActions:
 
             successor = gameState.generateSuccessor(0, action)
 
-            value = expectimax(successor, 0, 1)
+            value = expectimax(
+                successor, nextDepth, nextAgent
+            )
 
             if value > bestValue:
                 bestValue = value
                 bestAction = action
 
         return bestAction
-            
-        util.raiseNotDefined()
+        
 
 def betterEvaluationFunction(currentGameState: GameState):
     """
